@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HSMSE Concentrations — Andrew's Decision Guide</title>
+<style>
+  :root {
+    --math: #4361ee;
+    --eng: #f77f00;
+    --bio: #2d6a4f;
+    --chem: #9b2226;
+    --sinai: #7b2cbf;
+    --bg: #f8f9fa;
+    --card: #ffffff;
+    --text: #212529;
+    --muted: #6c757d;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); line-height:1.5; }
+
+  .header {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    color: white; padding: 40px 24px 32px; text-align:center;
+  }
+  .header h1 { font-size:2rem; font-weight:700; margin-bottom:6px; }
+  .header p { opacity:0.8; font-size:1rem; max-width:600px; margin:0 auto; }
+  .header .subtitle { font-size: 0.9rem; opacity:0.6; margin-top:8px; }
+
+  .container { max-width:1200px; margin:0 auto; padding:24px 16px; }
+
+  /* ── Navigation tabs ── */
+  .tab-bar {
+    display:flex; gap:8px; flex-wrap:wrap; justify-content:center;
+    margin-bottom:28px; position:sticky; top:0; z-index:10;
+    background: var(--bg); padding:12px 0;
+  }
+  .tab-btn {
+    padding:10px 20px; border:2px solid #dee2e6; border-radius:24px;
+    background:white; cursor:pointer; font-size:0.9rem; font-weight:600;
+    transition: all 0.2s;
+  }
+  .tab-btn:hover { transform:translateY(-1px); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+  .tab-btn.active { color:white; border-color:transparent; }
+  .tab-btn[data-tab="overview"].active { background: #333; }
+  .tab-btn[data-tab="math"].active { background: var(--math); }
+  .tab-btn[data-tab="eng"].active { background: var(--eng); }
+  .tab-btn[data-tab="bio"].active { background: var(--bio); }
+  .tab-btn[data-tab="chem"].active { background: var(--chem); }
+  .tab-btn[data-tab="sinai"].active { background: var(--sinai); }
+  .tab-btn[data-tab="compare"].active { background: #333; }
+
+  .tab-content { display:none; }
+  .tab-content.active { display:block; }
+
+  /* ── Overview grid ── */
+  .overview-grid {
+    display:grid; grid-template-columns: repeat(auto-fit, minmax(340px,1fr));
+    gap:20px; margin-bottom:32px;
+  }
+  .overview-card {
+    background: var(--card); border-radius:16px; padding:28px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06); border-top: 5px solid;
+    transition: transform 0.2s, box-shadow 0.2s; cursor:pointer;
+  }
+  .overview-card:hover { transform:translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
+  .overview-card h3 { font-size:1.2rem; margin-bottom:4px; }
+  .overview-card .tagline { color: var(--muted); font-size:0.85rem; margin-bottom:14px; font-style:italic; }
+  .overview-card .highlights { list-style:none; }
+  .overview-card .highlights li { padding:4px 0; font-size:0.9rem; }
+  .overview-card .highlights li::before { content:'▸ '; font-weight:bold; }
+
+  /* ── Detail panels ── */
+  .detail-panel { background:var(--card); border-radius:16px; padding:32px; box-shadow:0 1px 4px rgba(0,0,0,0.06); margin-bottom:24px; }
+  .detail-panel h2 { font-size:1.5rem; margin-bottom:6px; }
+  .detail-panel .tagline { color:var(--muted); margin-bottom:20px; font-style:italic; }
+
+  .two-col { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:24px; }
+  @media (max-width:700px) { .two-col { grid-template-columns:1fr; } }
+
+  .year-box { background: #f8f9fa; border-radius:12px; padding:20px; }
+  .year-box h4 { font-size:0.85rem; text-transform:uppercase; letter-spacing:1px; color:var(--muted); margin-bottom:12px; }
+  .course-list { list-style:none; }
+  .course-list li { padding:5px 0; font-size:0.9rem; border-bottom:1px solid #eee; }
+  .course-list li:last-child { border:none; }
+  .course-list .highlight { font-weight:600; }
+
+  /* ── Pros / Cons ── */
+  .pros-cons { display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-top:20px; }
+  @media (max-width:700px) { .pros-cons { grid-template-columns:1fr; } }
+  .pros, .cons { padding:20px; border-radius:12px; }
+  .pros { background: #e8f5e9; }
+  .cons { background: #fce4ec; }
+  .pros h4 { color: #2e7d32; margin-bottom:10px; }
+  .cons h4 { color: #c62828; margin-bottom:10px; }
+  .pros ul, .cons ul { list-style:none; }
+  .pros li, .cons li { padding: 5px 0; font-size:0.9rem; }
+  .pros li::before { content:'✓ '; color:#2e7d32; font-weight:bold; }
+  .cons li::before { content:'✗ '; color:#c62828; font-weight:bold; }
+
+  /* ── Fit box ── */
+  .fit-box { margin-top:20px; padding:18px 22px; border-radius:12px; background:#e3f2fd; }
+  .fit-box h4 { color:#1565c0; margin-bottom:8px; }
+  .fit-box p { font-size:0.9rem; }
+
+  /* ── Comparison table ── */
+  .compare-table-wrap { overflow-x:auto; }
+  .compare-table {
+    width:100%; border-collapse:collapse; font-size:0.85rem;
+    background:white; border-radius:12px; overflow:hidden;
+    box-shadow:0 1px 4px rgba(0,0,0,0.06);
+  }
+  .compare-table th, .compare-table td { padding:12px 14px; text-align:left; border-bottom:1px solid #eee; vertical-align:top; }
+  .compare-table th { background:#f1f3f5; font-weight:700; position:sticky; left:0; z-index:1; white-space:nowrap; min-width:160px; }
+  .compare-table thead th { background:#343a40; color:white; font-weight:600; }
+  .compare-table thead th:first-child { background:#343a40; }
+  .compare-table .col-math { border-top:3px solid var(--math); }
+  .compare-table .col-eng { border-top:3px solid var(--eng); }
+  .compare-table .col-bio { border-top:3px solid var(--bio); }
+  .compare-table .col-chem { border-top:3px solid var(--chem); }
+  .compare-table .col-sinai { border-top:3px solid var(--sinai); }
+  .compare-table tr:hover td { background:#f8f9fa; }
+
+  .badge { display:inline-block; padding:2px 8px; border-radius:10px; font-size:0.75rem; font-weight:600; }
+  .badge-high { background:#c8e6c9; color:#2e7d32; }
+  .badge-med { background:#fff9c4; color:#f57f17; }
+  .badge-low { background:#ffcdd2; color:#c62828; }
+
+  /* ── Radar / visual rating ── */
+  .rating-section { margin-top:32px; }
+  .rating-section h3 { text-align:center; margin-bottom:20px; }
+  .rating-grid {
+    display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap:16px;
+  }
+  .rating-card {
+    background:white; border-radius:12px; padding:20px; text-align:center;
+    box-shadow:0 1px 4px rgba(0,0,0,0.06); border-top:4px solid;
+  }
+  .rating-card h4 { font-size:0.95rem; margin-bottom:14px; }
+  .meter-row { display:flex; align-items:center; gap:8px; margin:6px 0; font-size:0.8rem; }
+  .meter-label { width:100px; text-align:right; flex-shrink:0; }
+  .meter-bar { flex:1; height:10px; background:#eee; border-radius:5px; overflow:hidden; }
+  .meter-fill { height:100%; border-radius:5px; transition:width 0.5s; }
+
+  /* ── Decision matrix ── */
+  .matrix-section { margin-top:32px; }
+  .matrix-section h3 { text-align:center; margin-bottom:8px; }
+  .matrix-section p.sub { text-align:center; color:var(--muted); font-size:0.85rem; margin-bottom:20px; }
+
+  .footer { text-align:center; padding:32px 16px; color:var(--muted); font-size:0.8rem; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>HSMSE Concentration Guide</h1>
+  <p>A side-by-side analysis of all 5 tracks to help Andrew choose the right path for junior &amp; senior year</p>
+  <div class="subtitle">High School for Math, Science &amp; Engineering at City College — Spring 2026 Decision</div>
+</div>
+
+<div class="container">
+
+  <div class="tab-bar">
+    <button class="tab-btn active" data-tab="overview">Overview</button>
+    <button class="tab-btn" data-tab="math" style="border-color:var(--math);">Math</button>
+    <button class="tab-btn" data-tab="eng" style="border-color:var(--eng);">Engineering</button>
+    <button class="tab-btn" data-tab="bio" style="border-color:var(--bio);">Science — Bio</button>
+    <button class="tab-btn" data-tab="chem" style="border-color:var(--chem);">Science — Chem</button>
+    <button class="tab-btn" data-tab="sinai" style="border-color:var(--sinai);">Mt. Sinai</button>
+    <button class="tab-btn" data-tab="compare">Compare All</button>
+  </div>
+
+  <!-- ════════════ OVERVIEW ════════════ -->
+  <div class="tab-content active" id="overview">
+    <div class="overview-grid">
+
+      <div class="overview-card" style="border-color:var(--math);" onclick="switchTab('math')">
+        <h3 style="color:var(--math);">Mathematics</h3>
+        <div class="tagline">For the student who sees beauty in theorems and proofs</div>
+        <ul class="highlights">
+          <li>College-credit courses from CCNY (PreCalc → Calculus)</li>
+          <li>AP Computer Science + Intro to Mathematical Reasoning</li>
+          <li>Senior: Linear Algebra, Advanced Topics (Graph/Number/Game Theory)</li>
+          <li>Required: 2 semesters Varsity Math Team</li>
+        </ul>
+      </div>
+
+      <div class="overview-card" style="border-color:var(--eng);" onclick="switchTab('eng')">
+        <h3 style="color:var(--eng);">Engineering</h3>
+        <div class="tagline">For the builder, tinkerer, and hands-on problem solver</div>
+        <ul class="highlights">
+          <li>Project Lead the Way nationally validated curriculum</li>
+          <li>Digital Electronics + Principles of Engineering (Robotics)</li>
+          <li>Senior choices: Innovation & Design, Adv. Architecture, Networking</li>
+          <li>Paid summer internship at CCNY Grove School of Engineering</li>
+        </ul>
+      </div>
+
+      <div class="overview-card" style="border-color:var(--bio);" onclick="switchTab('bio')">
+        <h3 style="color:var(--bio);">Science — Biology Focus</h3>
+        <div class="tagline">For the future biologist, doctor, or life-science researcher</div>
+        <ul class="highlights">
+          <li>AP Biology + Science Research course (junior year)</li>
+          <li>Senior: Genetics & Human Anatomy + Research Seminar</li>
+          <li>Guided independent research study with a science mentor</li>
+          <li>Present research findings at end of senior year</li>
+        </ul>
+      </div>
+
+      <div class="overview-card" style="border-color:var(--chem);" onclick="switchTab('chem')">
+        <h3 style="color:var(--chem);">Science — Chemistry Focus</h3>
+        <div class="tagline">For the student drawn to molecular puzzles and lab work</div>
+        <ul class="highlights">
+          <li>AP Chemistry + Topics in Chemistry + Science Research (junior)</li>
+          <li>Senior: Organic Chemistry + Research Seminar</li>
+          <li>Guided independent research study with a science mentor</li>
+          <li>Strong prep for college-level chemistry &amp; pre-med</li>
+        </ul>
+      </div>
+
+      <div class="overview-card" style="border-color:var(--sinai);" onclick="switchTab('sinai')">
+        <h3 style="color:var(--sinai);">Mt. Sinai Biomedical Research</h3>
+        <div class="tagline">For the aspiring physician-scientist — real hospital immersion</div>
+        <ul class="highlights">
+          <li>Half-day at Mt. Sinai Hospital campus (junior year)</li>
+          <li>Biomedical Sciences, Genetics &amp; Molecular Biology</li>
+          <li>Senior: Clinical or research internship with a mentor doctor</li>
+          <li>Exposure to cardiology, oncology, obstetrics, autopsy suite</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ════════════ MATH DETAIL ════════════ -->
+  <div class="tab-content" id="math">
+    <div class="detail-panel" style="border-top:5px solid var(--math);">
+      <h2 style="color:var(--math);">Mathematics Concentration</h2>
+      <div class="tagline">College-level abstract math + computer science + math team competition</div>
+
+      <div class="two-col">
+        <div class="year-box">
+          <h4>Junior Year — Concentration Courses</h4>
+          <ul class="course-list">
+            <li class="highlight">Introduction to Math (college-credit from CCNY)</li>
+            <li class="highlight">AP Computer Science</li>
+            <li>PreCalculus (A Day) / Gym-Lab (B Day)</li>
+            <li>US History / Physics</li>
+            <li>English</li>
+            <li>German or Spanish</li>
+            <li>Electives (both days)</li>
+          </ul>
+        </div>
+        <div class="year-box">
+          <h4>Senior Year — Concentration Courses</h4>
+          <ul class="course-list">
+            <li class="highlight">Linear Algebra</li>
+            <li class="highlight">Advanced Topics in Mathematics (Graph Theory, Number Theory, Game Theory, Maple)</li>
+            <li>AP Calculus (A Day) / Gym (B Day)</li>
+            <li>Government/Economics / Advanced Science</li>
+            <li>College Writing / Senior Research Paper</li>
+            <li>AP German or Elective</li>
+            <li>Senior Elective / OFF period</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>Pros</h4>
+          <ul>
+            <li>College credit from CCNY — head start on college transcript</li>
+            <li>Deepest math preparation of any track — Linear Algebra, Diff Eq, Advanced Topics</li>
+            <li>AP Computer Science gives valuable coding skills alongside pure math</li>
+            <li>Varsity Math Team builds competition experience (looks great on college apps)</li>
+            <li>Strongest foundation for STEM majors in college (CS, physics, engineering, economics, data science)</li>
+            <li>Broadest flexibility: math skills transfer to virtually any STEM or quantitative career</li>
+            <li>Develops abstract reasoning and proof-writing — key for top-tier university math/CS programs</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>Cons</h4>
+          <ul>
+            <li>No hands-on lab or real-world project component — purely theoretical</li>
+            <li>No internship or industry exposure built into the program</li>
+            <li>Requires genuine passion for abstract math — can feel disconnected if interests are more applied</li>
+            <li>Math Team requirement adds time commitment on top of coursework</li>
+            <li>Less differentiated on college apps vs. unique tracks like Mt. Sinai</li>
+            <li>No direct exposure to engineering design, biology, or medical fields</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="fit-box">
+        <h4>Best Fit For Andrew If…</h4>
+        <p>He loves puzzles, proofs, and the elegance of mathematical reasoning. He's curious about computer science. He wants maximum flexibility for college — this track leaves every STEM door open (CS, engineering, physics, economics, data science, pure math). It's the "keep all options open" power move if he genuinely enjoys math.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════ ENGINEERING DETAIL ════════════ -->
+  <div class="tab-content" id="eng">
+    <div class="detail-panel" style="border-top:5px solid var(--eng);">
+      <h2 style="color:var(--eng);">Engineering Concentration</h2>
+      <div class="tagline">Project Lead the Way curriculum — nationally validated, hands-on engineering</div>
+
+      <div class="two-col">
+        <div class="year-box">
+          <h4>Junior Year — Concentration Courses</h4>
+          <ul class="course-list">
+            <li class="highlight">Digital Electronics / Python Programming</li>
+            <li class="highlight">Principles of Engineering — Robotics / Mechanical Design</li>
+            <li>PreCalculus/Calculus I (A Day) / Gym-Lab (B Day)</li>
+            <li>US History / Physics</li>
+            <li>AP English</li>
+            <li>German or Spanish</li>
+            <li>Electives (both days)</li>
+          </ul>
+        </div>
+        <div class="year-box">
+          <h4>Senior Year — Concentration Courses</h4>
+          <ul class="course-list">
+            <li class="highlight">Senior Engineering — choose from:</li>
+            <li style="padding-left:16px;">Digital Systems Design (DSD)</li>
+            <li style="padding-left:16px;">Innovation &amp; Design</li>
+            <li style="padding-left:16px;">Advanced Architecture</li>
+            <li style="padding-left:16px;">Networking &amp; Environmental Sustainability</li>
+            <li>AP Calculus / Gym</li>
+            <li>Government/Economics / Advanced Science</li>
+            <li>College Writing / Senior Research Paper</li>
+            <li>Senior Elective / OFF period</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>Pros</h4>
+          <ul>
+            <li>Most hands-on track — robotics, mechanical design, electronics, prototyping</li>
+            <li>Paid summer internship opportunity at CCNY's Grove School of Engineering</li>
+            <li>Project Lead the Way is nationally recognized — colleges know and value it</li>
+            <li>Heavy teamwork and collaborative problem-solving (mirrors real engineering)</li>
+            <li>Multiple senior year specialization choices (architecture, innovation, networking)</li>
+            <li>Python programming integrated into Digital Electronics</li>
+            <li>Builds a portfolio of tangible projects for college applications</li>
+            <li>Direct pipeline to engineering programs at CCNY and beyond</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>Cons</h4>
+          <ul>
+            <li>Less advanced math compared to the Math track (no Linear Algebra / Diff Eq)</li>
+            <li>No AP science course specific to the concentration</li>
+            <li>More narrowly focused — less ideal if Andrew later pivots to medicine or pure science</li>
+            <li>Heavy project workload can conflict with other AP courses and extracurriculars</li>
+            <li>Does not include a formal research component</li>
+            <li>No biology or chemistry depth — harder to pivot to pre-med later</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="fit-box">
+        <h4>Best Fit For Andrew If…</h4>
+        <p>He loves building things, enjoys tinkering with electronics or code, and wants to see ideas come to life as physical prototypes. The paid internship at CCNY is a genuine differentiator. Best if he's leaning toward mechanical, electrical, civil, or computer engineering in college.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════ BIO DETAIL ════════════ -->
+  <div class="tab-content" id="bio">
+    <div class="detail-panel" style="border-top:5px solid var(--bio);">
+      <h2 style="color:var(--bio);">Science Concentration — Biology Focus</h2>
+      <div class="tagline">AP Biology → Genetics & Human Anatomy → independent research with a mentor</div>
+
+      <div class="two-col">
+        <div class="year-box">
+          <h4>Junior Year — Concentration Courses</h4>
+          <ul class="course-list">
+            <li class="highlight">AP Biology</li>
+            <li class="highlight">Science Research</li>
+            <li>AP English / Gym-Lab</li>
+            <li>US History / Physics</li>
+            <li>Electives (both days)</li>
+            <li>German or Spanish / US History</li>
+          </ul>
+        </div>
+        <div class="year-box">
+          <h4>Senior Year — Concentration Courses</h4>
+          <ul class="course-list">
+            <li class="highlight">Genetics / Human Anatomy</li>
+            <li class="highlight">Science Research / Seminar (continues)</li>
+            <li>College Writing / Senior Research Paper / Gym</li>
+            <li>Government/Economics / Advanced Science</li>
+            <li>AP Calculus</li>
+            <li>AP German or Elective</li>
+            <li>Senior Elective / OFF period</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>Pros</h4>
+          <ul>
+            <li>Two full years of guided scientific research — rare at the high school level</li>
+            <li>AP Biology is a flagship AP course — strong college app signal</li>
+            <li>Genetics + Human Anatomy is pre-med gold (not offered at most high schools)</li>
+            <li>Produces a polished research paper suitable for science competitions (Regeneron, NYCSEF)</li>
+            <li>Science mentor provides one-on-one guidance — like a mini college research experience</li>
+            <li>Excellent preparation for biology, neuroscience, pre-med, public health in college</li>
+            <li>Stays within HSMSE campus — simpler logistics than Mt. Sinai</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>Cons</h4>
+          <ul>
+            <li>No hospital or clinical exposure (unlike Mt. Sinai)</li>
+            <li>Research is school-based, not embedded in a professional lab</li>
+            <li>Less math depth than the Math track</li>
+            <li>No engineering or hands-on building component</li>
+            <li>If Andrew isn't sure about bio, two years of it is a big commitment</li>
+            <li>Narrower than Chemistry focus for certain fields (pharmaceuticals, materials science)</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="fit-box">
+        <h4>Best Fit For Andrew If…</h4>
+        <p>He's fascinated by living systems — how the body works, genetics, disease. He enjoys lab work and wants to develop real research skills. Ideal if he's considering pre-med, biology, neuroscience, or biomedical science in college, but wants to stay on the HSMSE campus full-time.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════ CHEM DETAIL ════════════ -->
+  <div class="tab-content" id="chem">
+    <div class="detail-panel" style="border-top:5px solid var(--chem);">
+      <h2 style="color:var(--chem);">Science Concentration — Chemistry Focus</h2>
+      <div class="tagline">AP Chemistry → Organic Chemistry → independent research with a mentor</div>
+
+      <div class="two-col">
+        <div class="year-box">
+          <h4>Junior Year — Concentration Courses</h4>
+          <ul class="course-list">
+            <li class="highlight">AP Chemistry</li>
+            <li class="highlight">Topics in Chemistry (both A & B days)</li>
+            <li class="highlight">Science Research</li>
+            <li>AP English / Gym-Lab</li>
+            <li>US History / Physics</li>
+            <li>German or Spanish / US History</li>
+          </ul>
+        </div>
+        <div class="year-box">
+          <h4>Senior Year — Concentration Courses</h4>
+          <ul class="course-list">
+            <li class="highlight">Organic Chemistry</li>
+            <li class="highlight">Science Research / Seminar (continues)</li>
+            <li>College Writing / Senior Research Paper</li>
+            <li>Government/Economics / Advanced Science</li>
+            <li>AP Calculus</li>
+            <li>AP German or Elective</li>
+            <li>Senior Elective / OFF period</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>Pros</h4>
+          <ul>
+            <li>Organic Chemistry in high school is extraordinary — most students first encounter it in college</li>
+            <li>Topics in Chemistry provides extra depth beyond AP (double period both days in junior year)</li>
+            <li>Two full years of guided scientific research with mentor</li>
+            <li>AP Chemistry score is highly valued by college STEM programs</li>
+            <li>Research paper for science competitions (Regeneron, NYCSEF)</li>
+            <li>Excellent prep for pre-med (Organic Chem is the notorious college "weed-out" — getting it early is an advantage)</li>
+            <li>Opens doors to chemistry, biochemistry, pharmacology, chemical engineering, materials science</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>Cons</h4>
+          <ul>
+            <li>Heaviest science course load — Topics in Chemistry occupies both A&B day slots in junior year</li>
+            <li>No hospital or clinical exposure</li>
+            <li>Organic Chemistry is notoriously difficult — very challenging at the high school level</li>
+            <li>Less flexibility for electives due to packed schedule (especially junior year)</li>
+            <li>Research is school-based, not embedded in a professional lab</li>
+            <li>If Andrew doesn't end up in a chemistry-adjacent field, the depth may feel excessive</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="fit-box">
+        <h4>Best Fit For Andrew If…</h4>
+        <p>He lights up in chemistry class — loves reactions, molecular structures, and lab experiments. Organic Chemistry in high school is a serious differentiator for college apps and gives a massive head start for pre-med or any chemistry-intensive major. This is the most academically demanding science track.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════ MT. SINAI DETAIL ════════════ -->
+  <div class="tab-content" id="sinai">
+    <div class="detail-panel" style="border-top:5px solid var(--sinai);">
+      <h2 style="color:var(--sinai);">Mt. Sinai Biomedical Research Program</h2>
+      <div class="tagline">Half-day hospital immersion → senior year clinical/research internship with a physician-mentor</div>
+
+      <div class="two-col">
+        <div class="year-box">
+          <h4>Junior Year — Concentration Courses</h4>
+          <ul class="course-list">
+            <li class="highlight">Sinai Biomedical Sciences, Genetics &amp; Molecular Biology (half-day at Mt. Sinai campus)</li>
+            <li>English / PreCalculus</li>
+            <li>Physics Elective (both A & B days)</li>
+            <li>German or Spanish / US History</li>
+            <li><em>Note: Mornings at Mt. Sinai, afternoons at HSMSE</em></li>
+          </ul>
+        </div>
+        <div class="year-box">
+          <h4>Senior Year — Concentration Courses</h4>
+          <ul class="course-list">
+            <li class="highlight">Sinai Research or Clinical Rounds (with mentor doctor)</li>
+            <li>AP Calculus / College Writing / Senior Research Paper</li>
+            <li>Government/Economics / Advanced Science</li>
+            <li>AP German or Elective</li>
+            <li><em>Note: Research/clinical work spans periods 5-6</em></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>Pros</h4>
+          <ul>
+            <li>Most prestigious and unique track — real hospital immersion is extraordinary for a high schooler</li>
+            <li>Clinical rotations in cardiology, oncology, obstetrics, even autopsy suite</li>
+            <li>Paired one-on-one with a healthcare professional or researcher as a senior</li>
+            <li>Strongest possible signal on college apps for pre-med / biomedical science</li>
+            <li>Hands-on labs, lectures from actual physicians and researchers</li>
+            <li>Early career clarity — confirms (or rules out) a medical career before college commitment</li>
+            <li>Generates a competitive science research paper</li>
+            <li>The Mt. Sinai / Icahn School of Medicine name carries significant weight</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>Cons</h4>
+          <ul>
+            <li>Logistically complex — split schedule between HSMSE campus and Mt. Sinai hospital</li>
+            <li>Competitive admission within HSMSE — may not be guaranteed a spot</li>
+            <li>Most narrowly focused track — clearly oriented toward medicine/biomedical research</li>
+            <li>Less advanced math (PreCalculus in junior year, not college-level math like Math track)</li>
+            <li>If Andrew decides medicine isn't for him, other tracks offer broader preparation</li>
+            <li>Hospital environment can be emotionally intense (autopsy suite, oncology)</li>
+            <li>Less flexibility in schedule due to the hospital commute and fixed program blocks</li>
+            <li>No AP Biology or AP Chemistry within the concentration itself</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="fit-box">
+        <h4>Best Fit For Andrew If…</h4>
+        <p>He's seriously drawn to medicine, biomedical research, or healthcare. This is the most immersive, "real-world" track — nothing else at HSMSE (or most high schools anywhere) gives a student this level of clinical exposure. The trade-off is that it's the most committed path: if medicine turns out not to be the right fit, pivoting is harder. But if it is the right fit, this is an unmatched opportunity.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════ COMPARISON TABLE ════════════ -->
+  <div class="tab-content" id="compare">
+    <div class="detail-panel">
+      <h2>Side-by-Side Comparison</h2>
+      <div class="tagline">All 5 tracks across the dimensions that matter most</div>
+
+      <div class="compare-table-wrap">
+        <table class="compare-table">
+          <thead>
+            <tr>
+              <th></th>
+              <th class="col-math">Math</th>
+              <th class="col-eng">Engineering</th>
+              <th class="col-bio">Science — Bio</th>
+              <th class="col-chem">Science — Chem</th>
+              <th class="col-sinai">Mt. Sinai</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th>Core Focus</th>
+              <td>Abstract math, proofs, computing</td>
+              <td>Hands-on design, robotics, electronics</td>
+              <td>Biology, genetics, anatomy</td>
+              <td>Chemistry, molecular science, organic chem</td>
+              <td>Biomedical research, clinical medicine</td>
+            </tr>
+            <tr>
+              <th>AP Courses in Track</th>
+              <td>AP Computer Science</td>
+              <td>AP English (scheduled in track)</td>
+              <td>AP Biology</td>
+              <td>AP Chemistry</td>
+              <td>None specific to concentration</td>
+            </tr>
+            <tr>
+              <th>Math Depth</th>
+              <td><span class="badge badge-high">Highest</span> Linear Algebra, Diff Eq, Calculus</td>
+              <td><span class="badge badge-med">Moderate</span> PreCalc → AP Calculus</td>
+              <td><span class="badge badge-med">Moderate</span> AP Calculus (senior)</td>
+              <td><span class="badge badge-med">Moderate</span> AP Calculus (senior)</td>
+              <td><span class="badge badge-low">Lower</span> PreCalc (junior), AP Calc (senior)</td>
+            </tr>
+            <tr>
+              <th>Research Component</th>
+              <td>None formal</td>
+              <td>Project-based (design portfolio)</td>
+              <td><span class="badge badge-high">2 years</span> with mentor</td>
+              <td><span class="badge badge-high">2 years</span> with mentor</td>
+              <td><span class="badge badge-high">2 years</span> clinical + lab at Mt. Sinai</td>
+            </tr>
+            <tr>
+              <th>Internship / External</th>
+              <td>No</td>
+              <td><span class="badge badge-high">Yes</span> Paid, CCNY Grove School</td>
+              <td>No</td>
+              <td>No</td>
+              <td><span class="badge badge-high">Yes</span> Mt. Sinai hospital</td>
+            </tr>
+            <tr>
+              <th>College Credit</th>
+              <td><span class="badge badge-high">Yes</span> CCNY courses</td>
+              <td>Possible via PLTW</td>
+              <td>Via AP exams</td>
+              <td>Via AP exams</td>
+              <td>Via AP exams</td>
+            </tr>
+            <tr>
+              <th>Hands-On Work</th>
+              <td><span class="badge badge-low">Low</span> Theory-focused</td>
+              <td><span class="badge badge-high">Highest</span> Building, prototyping</td>
+              <td><span class="badge badge-med">Medium</span> Lab-based research</td>
+              <td><span class="badge badge-med">Medium</span> Lab-based research</td>
+              <td><span class="badge badge-high">High</span> Hospital labs, clinical</td>
+            </tr>
+            <tr>
+              <th>Teamwork Emphasis</th>
+              <td>Math Team (competitive)</td>
+              <td><span class="badge badge-high">Very High</span> Team projects</td>
+              <td>Mostly independent research</td>
+              <td>Mostly independent research</td>
+              <td>Clinical teams + independent</td>
+            </tr>
+            <tr>
+              <th>Schedule Flexibility</th>
+              <td><span class="badge badge-high">High</span></td>
+              <td><span class="badge badge-med">Medium</span></td>
+              <td><span class="badge badge-med">Medium</span></td>
+              <td><span class="badge badge-low">Low</span> Packed junior year</td>
+              <td><span class="badge badge-low">Low</span> Split campus</td>
+            </tr>
+            <tr>
+              <th>College App Uniqueness</th>
+              <td><span class="badge badge-med">Medium</span></td>
+              <td><span class="badge badge-high">High</span> PLTW + internship</td>
+              <td><span class="badge badge-med">Medium</span></td>
+              <td><span class="badge badge-high">High</span> Org. Chem in HS is rare</td>
+              <td><span class="badge badge-high">Highest</span> Hospital immersion</td>
+            </tr>
+            <tr>
+              <th>Career Flexibility</th>
+              <td><span class="badge badge-high">Broadest</span> Any quantitative field</td>
+              <td><span class="badge badge-med">Medium</span> Engineering-focused</td>
+              <td><span class="badge badge-med">Medium</span> Life sciences</td>
+              <td><span class="badge badge-med">Medium</span> Physical sciences</td>
+              <td><span class="badge badge-low">Narrowest</span> Medicine / biomed</td>
+            </tr>
+            <tr>
+              <th>Academic Rigor</th>
+              <td><span class="badge badge-high">Very High</span></td>
+              <td><span class="badge badge-med">High</span></td>
+              <td><span class="badge badge-high">High</span></td>
+              <td><span class="badge badge-high">Very High</span></td>
+              <td><span class="badge badge-high">Very High</span></td>
+            </tr>
+            <tr>
+              <th>Best College Paths</th>
+              <td>CS, Math, Physics, Econ, Data Science, Engineering</td>
+              <td>Mechanical, Electrical, Civil, Computer Engineering</td>
+              <td>Biology, Neuroscience, Pre-med, Public Health</td>
+              <td>Chemistry, Biochem, Pharmacy, Chemical Eng., Pre-med</td>
+              <td>Pre-med, Biomedical Science, Public Health, Nursing</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Rating Cards -->
+      <div class="rating-section">
+        <h3>Visual Rating Comparison</h3>
+        <div class="rating-grid">
+
+          <div class="rating-card" style="border-color:var(--math);">
+            <h4 style="color:var(--math);">Mathematics</h4>
+            <div class="meter-row"><span class="meter-label">Math Depth</span><div class="meter-bar"><div class="meter-fill" style="width:100%;background:var(--math);"></div></div></div>
+            <div class="meter-row"><span class="meter-label">Research</span><div class="meter-bar"><div class="meter-fill" style="width:15%;background:var(--math);"></div></div></div>
+            <div class="meter-row"><span class="meter-label">Hands-On</span><div class="meter-bar"><div class="meter-fill" style="width:20%;background:var(--math);"></div></div></div>
+            <div class="meter-row"><span class="meter-label">Uniqueness</span><div class="meter-bar"><div class="meter-fill" style="width:55%;background:var(--math);"></div></div></div>
+            <div class="meter-row"><span class="meter-label">Flexibility</span><div class="meter-bar"><div class="meter-fill" style="width:95%;background:var(--math);"></div></div></div>
+            <div class="meter-row"><span class="meter-label">Internship</span><div class="meter-bar"><div class="meter-fill" style="width:10%;background:var(--math);"></div></div></div>
+          </div>
+
+          <div class="rating-card" style="border-color:var(--eng);">
+            <h4 style="color:var(--eng);">Engineering</h4>
+            <div class="meter-row"><span class="meter-label">Math Depth</span><div class="meter-bar"><div class="meter-fill" style="width:50%;background:var(--eng);"></div></div></div>
+            <div class="meter-row"><span class="meter-label">Research</span><div class="meter-bar"><div class="meter-fill" style="width:40%;background:var(--eng);"></div></div></div>
+            <div class="meter-row"><span class="meter-label">Hands-On</span><div class="meter-bar"><div class="meter-fill" style="width:100%;background:var(--eng);"></div></div></div>
+            <div class="meter-row"><span class="meter-label">Uniqueness</span><div class="meter-bar"><div class="meter-fill" style="width:75%;background:var(--eng);"></div></div></div>
+            <div class="meter-row"><span class="meter-label">Flexibility</span><div class="meter-bar"><div class="meter-fill" style="width:60%;background:var(--eng);"></div></div></div>
+            <div class="meter-row"><span class="meter-label">Internship</span><div class="meter-bar"><div class="meter-fill" style="width:90%;background:var(--eng);"></div></div></div>
+          </div>
+
+          <div class="rating-card" style="border-color:var(--bio);">
+            <h4 style="color:var(--bio);">Science — Bio</h4>
+            <div class="meter-row"><span class="meter-label">Math Depth</span><div class="meter-bar"><div class="meter-fill" style="width:50%;background:var(--bio);"></div></div></div>
+            <div class="meter-row"><span class="meter-label">Research</span><div class="meter-bar"><div class="meter-fill" style="width:85%;background:var(--bio);"></div></div></div>
+            <div class="meter-row"><span class="meter-label">Hands-On</span><div class="meter-bar"><div class="meter-fill" style="width:55%;background:var(--bio);"></div></div></div>
+            <div class="meter-row"><span class="meter-label">Uniqueness</span><div class="meter-bar"><div class="meter-fill" style="width:55%;background:var(--bio);"></div></div></div>
+            <div class="meter-row"><span class="meter-label">Flexibility</span><div class="meter-bar"><div class="meter-fill" style="width:55%;background:var(--bio);"></div></div></div>
+            <div class="meter-row"><span class="meter-label">Internship</span><div class="meter-bar"><div class="meter-fill" style="width:10%;background:var(--bio);"></div></div></div>
+          </div>
+
+          <div class="rating-card" style="border-color:var(--chem);">
+            <h4 style="color:var(--chem);">Science — Chem</h4>
+            <div class="meter-row"><span class="meter-label">Math Depth</span><div class="meter-bar"><div class="meter-fill" style="width:50%;background:var(--chem);"></div></div></div>
+            <div class="meter-row"><span class="meter-label">Research</span><div class="meter-bar"><div class="meter-fill" style="width:85%;background:var(--chem);"></div></div></div>
+            <div class="meter-row"><span class="meter-label">Hands-On</span><div class="meter-bar"><div class="meter-fill" style="width:60%;background:var(--chem);"></div></div></div>
+            <div class="meter-row"><span class="meter-label">Uniqueness</span><div class="meter-bar"><div class="meter-fill" style="width:80%;background:var(--chem);"></div></div></div>
+            <div class="meter-row"><span class="meter-label">Flexibility</span><div class="meter-bar"><div class="meter-fill" style="width:50%;background:var(--chem);"></div></div></div>
+            <div class="meter-row"><span class="meter-label">Internship</span><div class="meter-bar"><div class="meter-fill" style="width:10%;background:var(--chem);"></div></div></div>
+          </div>
+
+          <div class="rating-card" style="border-color:var(--sinai);">
+            <h4 style="color:var(--sinai);">Mt. Sinai</h4>
+            <div class="meter-row"><span class="meter-label">Math Depth</span><div class="meter-bar"><div class="meter-fill" style="width:35%;background:var(--sinai);"></div></div></div>
+            <div class="meter-row"><span class="meter-label">Research</span><div class="meter-bar"><div class="meter-fill" style="width:100%;background:var(--sinai);"></div></div></div>
+            <div class="meter-row"><span class="meter-label">Hands-On</span><div class="meter-bar"><div class="meter-fill" style="width:90%;background:var(--sinai);"></div></div></div>
+            <div class="meter-row"><span class="meter-label">Uniqueness</span><div class="meter-bar"><div class="meter-fill" style="width:100%;background:var(--sinai);"></div></div></div>
+            <div class="meter-row"><span class="meter-label">Flexibility</span><div class="meter-bar"><div class="meter-fill" style="width:25%;background:var(--sinai);"></div></div></div>
+            <div class="meter-row"><span class="meter-label">Internship</span><div class="meter-bar"><div class="meter-fill" style="width:100%;background:var(--sinai);"></div></div></div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Decision Matrix -->
+      <div class="matrix-section">
+        <h3 style="margin-top:36px;">Decision Shortcuts</h3>
+        <p class="sub">Quick heuristics to help narrow the choice</p>
+        <div class="compare-table-wrap">
+          <table class="compare-table" style="font-size:0.9rem;">
+            <thead>
+              <tr><th>If Andrew…</th><th>Then consider…</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Wants to keep every STEM door open</td><td style="color:var(--math); font-weight:600;">Math — broadest foundation</td></tr>
+              <tr><td>Loves building, making, and seeing ideas become real</td><td style="color:var(--eng); font-weight:600;">Engineering — most hands-on + paid internship</td></tr>
+              <tr><td>Is fascinated by how the body works, wants pre-med prep</td><td style="color:var(--bio); font-weight:600;">Science Bio — genetics & anatomy depth</td></tr>
+              <tr><td>Thrives in chemistry and wants a pre-med edge</td><td style="color:var(--chem); font-weight:600;">Science Chem — Organic Chem in HS is a rare advantage</td></tr>
+              <tr><td>Is seriously considering a medical / biomedical career</td><td style="color:var(--sinai); font-weight:600;">Mt. Sinai — nothing else compares for clinical exposure</td></tr>
+              <tr><td>Isn't sure yet and values flexibility</td><td style="color:var(--math); font-weight:600;">Math — quantitative skills transfer everywhere</td></tr>
+              <tr><td>Wants the strongest college application differentiator</td><td style="color:var(--sinai); font-weight:600;">Mt. Sinai — most unique experience of any track</td></tr>
+              <tr><td>Wants college credit on the transcript now</td><td style="color:var(--math); font-weight:600;">Math — direct CCNY credits</td></tr>
+              <tr><td>Wants a paid work experience in high school</td><td style="color:var(--eng); font-weight:600;">Engineering — Grove School paid internship</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  Prepared for Andrew's Future Project — March 2026<br>
+  Data from HSMSE concentration documents &amp; hsmse.org
+</div>
+
+<script>
+  function switchTab(tabId) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
+    document.getElementById(tabId).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+  });
+</script>
+
+</body>
+</html>
